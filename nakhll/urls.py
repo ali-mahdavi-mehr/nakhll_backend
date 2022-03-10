@@ -10,6 +10,7 @@ view_urls = [
     path('torob/', include('torob_api.urls', namespace='torob')),
     path('goto/', include('url_redirector.urls', namespace='url_redirector')),
     path('payoff/', include('payoff.urls', namespace='payoff')),
+    path('sms/', include('sms.urls')),
     path('', include('nakhll_market.view_urls', namespace='nakhll_market')),
     path('', include('django_prometheus.urls')),
 ]
