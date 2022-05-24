@@ -780,7 +780,7 @@ class UserOrderHistory(viewsets.GenericViewSet,
     serializer_class = UserOrderSerializer
 
     def get_queryset(self):
-        return Invoice.objects.filter(cart__user=self.request.user)
+        return Invoice.objects.filter(user=self.request.user)
 
 
 class UserImagesViewSet(viewsets.ModelViewSet):
