@@ -2,17 +2,11 @@ from os import read
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from nakhll_market.models import (Profile , Product , Shop , 
-                                State, BigCity, City, ProductBanner)
+from nakhll_market.models import (Profile, Product, Shop,
+                                  State, BigCity, City, ProductBanner)
 import re
-from rest_framework.exceptions import  ValidationError 
+from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CurrentUserDefault
-
-
-
-
-
-
 
 
 class ShopListHomeSerializer(ModelSerializer):
@@ -47,8 +41,10 @@ class UserDetailSerializer(ModelSerializer):
             'username',
         ]
 
+
 class ShopDetailSerializer(ModelSerializer):
-    FK_ShopManager = UserDetailSerializer(read_only = True)
+    FK_ShopManager = UserDetailSerializer(read_only=True)
+
     class Meta:
         model = Shop
         fields = [
@@ -70,12 +66,13 @@ class ShopDetailSerializer(ModelSerializer):
 
 
 class ProfileSerializer(ModelSerializer):
-    user = UserDetailSerializer(read_only = True)
-    shops = ShopListHomeSerializer(many=True)
+    user = UserDetailSerializer(read_only=True)
+    # TODO: add shop after solve issue #110
+    # shops = ShopListHomeSerializer(many=True)
     cart_items_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = Profile 
+        model = Profile
         fields = [
             'id',
             'user',
@@ -86,9 +83,9 @@ class ProfileSerializer(ModelSerializer):
             'zip_code',
             'national_code',
             'address',
-            'state',
-            'big_city',
-            'city',
+            'state',  # TODO: should change after it's field change to FK
+            'big_city',  # TODO: should change after it's field change to FK
+            'city',  # TODO: should change after it's field change to FK
             'location',
             'bio',
             'phone_number',
@@ -101,7 +98,7 @@ class ProfileSerializer(ModelSerializer):
             'tutorial_website',
             'reference_code',
             'ip_address',
-            'shops',
+            # 'shops',
             'cart_items_count'
         ]
 
@@ -112,11 +109,11 @@ class ProfileSerializer(ModelSerializer):
             return 0
 
 
-
 class SimpleProfileSerializer(ModelSerializer):
-    user = UserDetailSerializer(read_only = True)
+    user = UserDetailSerializer(read_only=True)
+
     class Meta:
-        model = Profile 
+        model = Profile
         fields = [
             'id',
             'user',
@@ -142,14 +139,17 @@ class ProductListHomeSerializer(ModelSerializer):
             'Publish',
         ]
 
+
 class ProductFullSerializer(ModelSerializer):
-    FK_Shop = ShopDetailSerializer(read_only = True)
+    FK_Shop = ShopDetailSerializer(read_only=True)
+
     class Meta:
         model = Product
         fields = [
             'Title',
             'FK_Shop',
         ]
+
 
 class ProductTitleSerializer(ModelSerializer):
     class Meta:
@@ -160,13 +160,14 @@ class ProductTitleSerializer(ModelSerializer):
 
 
 class SimpleProductSerializer(ModelSerializer):
-    shop = serializers.SlugRelatedField(read_only = True, slug_field = 'Slug')
+    shop = serializers.SlugRelatedField(read_only=True, slug_field='Slug')
+
     class Meta:
         model = Product
         fields = [
             'shop',
             'title',
-            'price', 
+            'price',
             'old_price',
             'discount',
             'image_thumbnail_url',
@@ -176,7 +177,7 @@ class SimpleProductSerializer(ModelSerializer):
 class FilteredFactorPostListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
         user = self.context.get('request').user
-        data = data.filter(FK_Product__FK_Shop__FK_ShopManager = user)
+        data = data.filter(FK_Product__FK_Shop__FK_ShopManager=user)
         return super(FilteredFactorPostListSerializer, self).to_representation(data)
 
 
@@ -189,7 +190,6 @@ class ProductBannerSerializer(ModelSerializer):
         ]
 
 
-
 # //////////// web cart navbar view
 class ShopCartView(ModelSerializer):
     class Meta:
@@ -198,8 +198,10 @@ class ShopCartView(ModelSerializer):
             'Slug',
         ]
 
+
 class ProductCartView(ModelSerializer):
     FK_Shop = ShopCartView(read_only=True)
+
     class Meta:
         model = Product
         fields = [
@@ -208,6 +210,7 @@ class ProductCartView(ModelSerializer):
             'FK_Shop',
             'Image_thumbnail_url'
         ]
+
 
 class ShopDetailForPoint(ModelSerializer):
     class Meta:
@@ -219,8 +222,10 @@ class ShopDetailForPoint(ModelSerializer):
             'get_url',
         ]
 
+
 class PointSerializer(ModelSerializer):
-    FK_Shop = ShopDetailForPoint(read_only = True)
+    FK_Shop = ShopDetailForPoint(read_only=True)
+
     class Meta:
         model = Product
         fields = [
@@ -230,6 +235,7 @@ class PointSerializer(ModelSerializer):
             'Image_thumbnail_url',
             'FK_Shop',
         ]
+
 
 class ProductSerializer(ModelSerializer):
     class Meta:
@@ -243,15 +249,18 @@ class ProductSerializer(ModelSerializer):
             'Status',
         ]
 
+
 class StateSerializer(ModelSerializer):
     class Meta:
         model = State
         fields = ['id', 'name', ]
 
+
 class BigCitySerializer(ModelSerializer):
     class Meta:
         model = BigCity
         fields = ['id', 'name', ]
+
 
 class CitySerializer(ModelSerializer):
     class Meta:
@@ -265,5 +274,3 @@ class ProfileImageSerializer(ModelSerializer):
         fields = [
             'Image_thumbnail_url',
         ]
-
-
