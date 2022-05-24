@@ -403,10 +403,10 @@ class ProductBannerWriteSerializer(serializers.ModelSerializer):
 
 class ProductOwnerWriteSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(
-        read_only=False, many=False, queryset=Category.objects.all(),required=True,
-        error_messages={'required': ' کتگوری را انتخاب کنید','null':'کتگوری را انتخاب کنید'})
+        read_only=False, many=False, queryset=Category.objects.all(), required=True,
+        error_messages={'required': ' کتگوری را انتخاب کنید', 'null': 'کتگوری را انتخاب کنید'})
     product_tags = ProductTagWriteSerializer(many=True, read_only=False, required=False)
-    Image = Base64ImageField(max_length=None, use_url=True,error_messages={
+    Image = Base64ImageField(max_length=None, use_url=True, error_messages={
         'null': 'لطفا تصویر را انتخاب کنید',
         'required': 'لطفا تصویر را انتخاب کنید'
     })
@@ -879,28 +879,23 @@ class ProductThumbnailSerializers(serializers.ModelSerializer):
 
 
 class UserOrderSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(read_only=True, many=True)
-    receiver_name = serializers.ReadOnlyField(
-        source='address.receiver_full_name')
-    receiver_mobile = serializers.ReadOnlyField(
-        source='address.receiver_mobile_number')
-    address = AddressSerializer(read_only=True)
+    # products = ProductSerializer(read_only=True, many=True)
+    # receiver_name = serializers.ReadOnlyField(
+    #     source='address.receiver_full_name')
+    # receiver_mobile = serializers.ReadOnlyField(
+    #     source='address.receiver_mobile_number')
+    # address = AddressSerializer(read_only=True)
 
     class Meta:
         model = Invoice
         fields = (
             'id',
-            'FactorNumber',
-            'products',
-            'address_json',
-            'address',
-            'created_datetime',
-            'final_invoice_price',
-            'final_coupon_price',
-            'final_logistic_price',
-            'status',
-            'receiver_name',
-            'receiver_mobile')
+            # 'products',
+            # 'receiver_mobile',
+            # 'receiver_name',
+            # 'address',
+            # TODO: add more fields, we have probelm in issue #110
+        )
 
 
 class ProductLastStateSerializer(serializers.ModelSerializer):
