@@ -909,9 +909,9 @@ class UserOrderSerializer(serializers.ModelSerializer):
             'address_json',
             'address',
             'created_datetime',
-            'final_invoice_price',
-            'final_coupon_price',
-            'final_logistic_price',
+            # 'final_invoice_price',
+            # 'final_coupon_price',
+            # 'final_logistic_price',
             'status',
             'receiver_name',
             'receiver_mobile')
