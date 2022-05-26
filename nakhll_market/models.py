@@ -174,12 +174,15 @@ class ShopManager(models.Manager):
 
         # Exclude the ones that have been created less than 15 Hours ago
         # Exclude Shops that have default Image
+        # , Q(ShopProduct__Factor_Product__Factor_Products__OrderDate__gte=one_week_ago) \
+        # TODO: shop does not have Factor_Product field, so we can't use it
+        # TODO: we should fix this queryset to use it
         return queryset \
-                   .filter(Q(Publish=True), Q(Available=True), Q(DateCreate__lt=self.FEW_HOURS_AGO) \
-                           , Q(ShopProduct__Factor_Product__Factor_Products__OrderDate__gte=one_week_ago) \
-                           , ~Q(Image='static/Pictures/DefaultShop.png')) \
-                   .annotate(number_sale=Sum('ShopProduct__Factor_Product__ProductCount')) \
-                   .order_by('-number_sale')[:5]
+            .filter(Q(Publish=True), Q(Available=True), Q(DateCreate__lt=self.FEW_HOURS_AGO), \
+                    ~Q(Image='static/Pictures/DefaultShop.png'))
+
+        # .annotate(number_sale=Sum('ShopProduct__Factor_Product__ProductCount')) \
+        # .order_by('-number_sale')[:5]
 
     def get_random_shops(self):
         # Shop.objects\
@@ -270,7 +273,7 @@ class Shop(models.Model):
     ColorCode = models.CharField(max_length=9, verbose_name='کد رنگ', help_text='رنگ حجره را اینجا وارد کنید',
                                  blank=True)
     Bio = models.TextField(verbose_name='معرفی حجره دار', blank=True)
-    #these are only for backup purposes
+    # these are only for backup purposes
     state_old = models.CharField(
         max_length=50,
         blank=True)
@@ -622,7 +625,7 @@ class ProductManager(models.Manager):
             Price_float=Cast(F('Price'),
                              FloatField())).annotate(
             discount_ratio=(F('OldPrice_float') - F('Price_float')) /
-            F('OldPrice_float')).order_by('-discount_ratio')
+                           F('OldPrice_float')).order_by('-discount_ratio')
 
     def get_one_most_discount_precenetage_available_product_random(self):
         result = self.get_most_discount_precentage_available_product()
@@ -631,16 +634,16 @@ class ProductManager(models.Manager):
 
     def get_last_created_products(self):
         return Product.objects \
-            .filter(Publish=True, Available=True, OldPrice=0, Status__in=['1', '2', '3'],
-                    DateCreate__lt=self.FEW_HOURS_AGO) \
-            .order_by('-DateCreate')[:12]
+                   .filter(Publish=True, Available=True, OldPrice=0, Status__in=['1', '2', '3'],
+                           DateCreate__lt=self.FEW_HOURS_AGO) \
+                   .order_by('-DateCreate')[:12]
 
     def get_last_created_discounted_products(self):
         return Product.objects.filter(
             Publish=True, Available=True, Status__in=['1', '2', '3'],
             DateCreate__lt=self.FEW_HOURS_AGO).exclude(
             OldPrice=0).order_by('-DateCreate')[
-            : 16]
+               : 16]
 
     def available_products(self):
         return self.filter(
@@ -658,8 +661,8 @@ class ProductManager(models.Manager):
 
     def get_most_discount_precentage_products(self):
         return self \
-            .get_most_discount_precentage_available_product() \
-            .order_by('?')[:15]
+                   .get_most_discount_precentage_available_product() \
+                   .order_by('?')[:15]
 
     def get_products_in_same_factor(self, id):
         queryset = self.get_queryset()
@@ -718,7 +721,7 @@ class ProductManager(models.Manager):
     def has_enough_items_in_stock(product, count):
         ''' Check if product have enough items in stock '''
         return (product.Status == '1' and product.inventory >= count) \
-            or (product.Status in ['2', '3'])
+               or (product.Status in ['2', '3'])
 
     def is_product_list_valid(self, product_list):
         ''' Check if products in product_list is available, published and have enough in stock
@@ -732,7 +735,7 @@ class ProductManager(models.Manager):
         product_ids = [x.get('product').id for x in product_list]
         if self.filter(
                 Q(ID__in=product_ids) and (
-                    Q(Available=False) or Q(Publish=False)
+                        Q(Available=False) or Q(Publish=False)
                 )).exists():
             return False
         for item in product_list:
