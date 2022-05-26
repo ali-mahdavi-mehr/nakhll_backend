@@ -776,7 +776,6 @@ class UserProfileViewSet(viewsets.GenericViewSet):
 class UserOrderHistory(viewsets.GenericViewSet,
                        mixins.ListModelMixin, mixins.RetrieveModelMixin):
     permission_classes = [permissions.IsAuthenticated, IsInvoiceOwner]
-    queryset = Invoice.objects.all()
     serializer_class = UserOrderSerializer
 
     def get_queryset(self):
