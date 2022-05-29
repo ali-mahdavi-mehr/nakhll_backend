@@ -402,7 +402,7 @@ class ProductRelatedItemsViewSet(
     product = None
 
     def get_queryset(self):
-        queryset = Product.objects.filter(Available=True, Publish=True,
+        queryset = Product.objects.filter(Available=True, Publish=True, FK_Shop__Publish=True, FK_Shop__Available=True,
                                           Status__in=['1', '2', '3'])
         if self.product and self.product.category:
             queryset = queryset.filter(category=self.product.category)
