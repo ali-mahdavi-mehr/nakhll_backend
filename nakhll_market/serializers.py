@@ -528,7 +528,7 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
     def __update_banners(self, instance, validated_data):
         if 'Product_Banner' not in validated_data:
             return
-        instance.Product_Banner.clear()
+        # instance.Product_Banner.clear()
         product_banners = [
             ProductBanner.objects.create(
                 FK_Product=instance, Image=banner['Image'])
