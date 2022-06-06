@@ -5,28 +5,10 @@ from .models import ShopFeature
 from .models import ShopFeatureInvoice
 from .models import ShopLanding
 
-
 # Register your models here.
-@admin.register(ShopLanding)
-class ShopLandingAdmin(admin.ModelAdmin):
-    list_display = ['id', 'shop', 'name', 'status', 'shop_is_landing', 'created_at', 'updated_at']
-    list_display_links = ['id', 'shop', 'name']
-    search_fields = ['name', 'shop__Title']
-    autocomplete_fields = ['shop', ]
-    list_filter = ['status', 'created_at', 'updated_at']
-    ordering = ['-updated_at', '-created_at', '-id']
 
-    def shop_is_landing(self, obj):
-        return obj.shop.is_landing
-    shop_is_landing.boolean = True
-    shop_is_landing.short_description = 'صفحه فروشگاهی'
+admin.site.register(ShopLanding)
 
-    def get_queryset(self, request):
-        qs = super().get_queryset(request).filter(shop__Available=True, shop__Publish=True)
-        return qs
-
-    def has_delete_permission(self, request, obj=None):
-        return False
 
 @admin.register(ShopFeature)
 class ShopFeatureAdmin(admin.ModelAdmin):
@@ -50,12 +32,14 @@ class ShopFeatureInvoiceAdmin(admin.ModelAdmin):
     list_display = ('id', 'feature', 'shop', 'status', 'bought_price_per_unit', 'bought_unit',
                     'unit_count', 'shop_owner', 'payment_unique_id', 'is_demo',
                     'start_datetime_jalali', 'expire_datetime_jalali', 'payment_datetime_jalali')
+    list_display_links = ('id', 'feature', 'shop',)
     list_filter = ('status', 'is_demo', 'payment_datetime', 'start_datetime', 'expire_datetime', 'feature')
     readonly_fields = ('id', 'shop_owner', 'start_datetime_jalali', 'expire_datetime_jalali', 'payment_datetime_jalali')
     ordering = ['-id', ]
-    # search_fields = ('id', 'shop', 'payment_unique_id', )
+    search_fields = ('id', 'shop__Title', 'feature__name', 'payment_unique_id',)
     fields = ('id', 'feature', 'shop', 'status', 'bought_price_per_unit', 'bought_unit', 'unit_count', 'shop_owner',
-              'start_datetime_jalali', 'expire_datetime_jalali', 'payment_datetime_jalali', 'payment_unique_id',
+              'expire_datetime', 'start_datetime_jalali', 'expire_datetime_jalali', 'payment_datetime_jalali',
+              'payment_unique_id',
               'is_demo')
 
     def shop_owner(self, obj):
