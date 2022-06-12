@@ -1,6 +1,9 @@
+from django.db import IntegrityError
+
 from invoice.models import Invoice
 from logistic.serializers import AddressSerializer
 from nakhll.utils import get_dict
+from nakhll_market.exceptions import UniqueTitleShopException
 from nakhll_market.serializer_fields import Base64ImageField
 from nakhll_market.validators import validate_iran_national_code
 from restapi.serializers import (
@@ -493,6 +496,13 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
             for banner in banners]
         instance.Product_Banner.add(*banners)
         return instance
+
+
+    @staticmethod
+    def _check_unique_product_in_shop(shop, title):
+        qs = Product.objects.get(FK_Shop=shop, Title=title)
+        if qs:
+            raise UniqueTitleShopException()
 
     @staticmethod
     def __tag_create(instance, tags_list):
