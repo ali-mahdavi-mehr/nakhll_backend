@@ -60,11 +60,13 @@ class Kavenegar:
 
     
 
+
     @staticmethod
     def invoice_has_been_sent(invoice):
+        barcodes = '-'.join(invoice.barcodes) if invoice.barcodes else '-'
         tokens = {
             'token': invoice.id,
-            'token2': '-'.join(invoice.barcodes),
+            'token2': barcodes,
             }
         template = 'nakhll-sendpostcode'
         mobile = invoice.user.username
