@@ -26,6 +26,7 @@ from nakhll_market.models import (
 from shop.models import ShopFeature
 from shop.serializers import ShopLandingDetailsSerializer
 import jdatetime
+from rest_framework.validators import UniqueTogetherValidator
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -483,12 +484,15 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
             'product_tags',
         ]
 
+
     def create(self, validated_data):
         banners = validated_data.pop('Product_Banner')
         tags_list: list = [x['tag']
                            for x in validated_data.pop('product_tags', [])]
         post_range_cities = validated_data.pop('post_range_cities')
-        instance = Product.objects.create(**validated_data)
+        instance = Product(**validated_data)
+        self._check_unique_product_in_shop(instance.FK_Shop, instance.Title) 
+        instance.save()
         self.__tag_create(instance, tags_list)
         instance.post_range_cities.add(*post_range_cities)
         banners = [ProductBanner.objects.create(
@@ -497,12 +501,17 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
         instance.Product_Banner.add(*banners)
         return instance
 
-
     @staticmethod
     def _check_unique_product_in_shop(shop, title):
-        qs = Product.objects.get(FK_Shop=shop, Title=title)
-        if qs:
+        """
+        We use this method instead of the validator because we need to check FK_Shop 
+        and Title together and we don't have access to FK_Shop in the validator
+        """
+        try:
+            qs = Product.objects.get(FK_Shop=shop, Title=title)
             raise UniqueTitleShopException()
+        except Product.DoesNotExist:
+            pass
 
     @staticmethod
     def __tag_create(instance, tags_list):
