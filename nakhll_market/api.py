@@ -213,19 +213,16 @@ class ShopOwnerProductViewSet(
         # Convert price and old price from Toman to Rial to store in DB
         old_price = data.get('OldPrice', 0) * 10
         price = data.get('Price', 0) * 10
-        try:
-            if old_price:
-                product = serializer.save(
-                    OldPrice=price,
-                    Price=old_price,
-                    **product_extra_fileds)
-            else:
-                product = serializer.save(
-                    OldPrice=old_price,
-                    Price=price,
-                    **product_extra_fileds)
-        except IntegrityError:
-            raise UniqueTitleShopException()
+        if old_price:
+            product = serializer.save(
+                OldPrice=price,
+                Price=old_price,
+                **product_extra_fileds)
+        else:
+            product = serializer.save(
+                OldPrice=old_price,
+                Price=price,
+                **product_extra_fileds)
         # product.post_range_cities.add(*post_range)
 
         # TODO: Check if product created successfully and published and alerts
