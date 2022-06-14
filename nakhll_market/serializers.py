@@ -508,7 +508,7 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
         and Title together and we don't have access to FK_Shop in the validator
         """
         try:
-            qs = Product.objects.get(FK_Shop=shop, Title=title)
+            Product.objects.get(FK_Shop=shop, Title=title)
             raise UniqueTitleShopException()
         except Product.DoesNotExist:
             pass
@@ -572,6 +572,7 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
         self.__update_banners(instance, validated_data)
         self.__update_tags(instance, validated_data)
         self.__update_post_range(instance, validated_data)
+        # self.__check_UniqueTitleShop(instance, validated_data) # uncomment when path request only has update fields
         for prop, value in validated_data.items():
             setattr(instance, prop, value)
         instance.save()
@@ -594,6 +595,15 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
         product_post_ranges = validated_data.pop('post_range_cities')
         instance.post_range_cities.add(*product_post_ranges)
 
+    # TODO: uncomment when path request only has update fields
+    # def __check_UniqueTitleShop(self, instance, validated_data):
+    #     if 'Title' not in validated_data:
+    #         return
+    #     try:
+    #         Product.objects.get(FK_Shop=instance.FK_Shop, Title=validated_data['Title'])
+    #         raise UniqueTitleShopException()
+    #     except Product.DoesNotExist:
+    #         pass
 
 class ProductOwnerReadSerializer(serializers.ModelSerializer):
     category = CategoryChildSerializer(many=False, read_only=True)
