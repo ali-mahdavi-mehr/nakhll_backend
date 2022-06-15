@@ -1,4 +1,7 @@
+
 from django.db import IntegrityError
+
+from email import message
 
 from invoice.models import Invoice
 from logistic.serializers import AddressSerializer
@@ -426,6 +429,12 @@ class ProductTagWriteSerializer(serializers.ModelSerializer):
         model = ProductTag
         fields = ['id', 'text', ]
 
+    def validate_text(self, data):
+        if len(data) > 127:
+            raise serializers.ValidationError(
+                {'error': 'تعداد کاراکترهای تگ انتخاب شده بیش از حد مجاز است.'})
+        return data
+
 
 class TagOwnerListSerializer(serializers.ModelSerializer):
     text = serializers.CharField(source="name")
@@ -567,6 +576,7 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
                     ProductTag(
                         product=instance, tag=tag)
                     for tag in tags])
+
 
     def update(self, instance, validated_data):
         self.__update_banners(instance, validated_data)
@@ -1004,9 +1014,9 @@ class UserOrderSerializer(serializers.ModelSerializer):
             'address_json',
             'address',
             'created_datetime',
-            'final_invoice_price',
-            'final_coupon_price',
-            'final_logistic_price',
+            # 'final_invoice_price', # TODO : Field name `final_invoice_price` is not valid for model `Invoice`
+            # 'final_coupon_price',  # TODO : Field name `final_coupon_price` is not valid for model `Invoice`
+            # 'final_logistic_price', # TODO : Field name `final_logistic_price` is not valid for model `Invoice`
             'status',
             'receiver_name',
             'receiver_mobile')
