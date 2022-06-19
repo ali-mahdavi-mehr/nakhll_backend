@@ -6,17 +6,11 @@ from rest_framework import serializers
 from logistic.models import Address, ShopLogisticUnit, ShopLogisticUnitConstraint, ShopLogisticUnitCalculationMetric
 from nakhll_market.models import Product, Shop, State, BigCity, City
 from nakhll_market.serializer_fields import Base64ImageField
+from restapi.serializers import BigCitySerializer, CitySerializer, StateSerializer
 
 
 class AddressSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
-    state = serializers.SlugRelatedField(
-        slug_field='name', queryset=State.objects.all())
-    big_city = serializers.SlugRelatedField(
-        slug_field='name', queryset=BigCity.objects.all())
-    city = serializers.SlugRelatedField(
-        slug_field='name', queryset=City.objects.all())
-
     class Meta:
         model = Address
         fields = ('id', 'user', 'state', 'big_city', 'city', 'zip_code', 'address',
@@ -27,7 +21,17 @@ class AddressSerializer(serializers.ModelSerializer):
         return obj.user.first_name + ' ' + obj.user.last_name
 
 
-class ShopOwnerAddressSerializer(AddressSerializer):
+class AddressReadSerializer(AddressSerializer):
+    state = StateSerializer(many=False, read_only=True)
+    big_city = BigCitySerializer(many=False, read_only=True)
+    city = CitySerializer(many=False, read_only=True)
+
+
+class AddressWriteSerializer(AddressSerializer):
+    pass
+
+
+class ShopOwnerAddressReadSerializer(AddressReadSerializer):
     class Meta:
         model = Address
         fields = ('id', 'user', 'state', 'big_city', 'city', 'zip_code',
