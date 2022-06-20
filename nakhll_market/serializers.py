@@ -1,3 +1,4 @@
+from email import message
 from invoice.models import Invoice
 from logistic.serializers import AddressSerializer
 from nakhll.utils import get_dict
@@ -22,6 +23,7 @@ from nakhll_market.models import (
 )
 from shop.models import ShopFeature
 from shop.serializers import ShopLandingDetailsSerializer
+import jdatetime
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -192,7 +194,10 @@ class CreateShopSerializer(serializers.ModelSerializer):
             'Title',
             'show_contact_info',
             'last_name',
-            'first_name']
+            'first_name',
+            'State',
+            'BigCity',
+            'City']
         extra_kwargs = {
             'Slug': {'validators': [], 'allow_null': True, 'required': False}
         }
@@ -206,9 +211,34 @@ class CreateShopSerializer(serializers.ModelSerializer):
                               'last_name': user.last_name})
             self.initial_data = init_data
 
+    def validate(self, data):
+        state_name = data.pop(
+            'State')['name'] if 'State' in data else None
+        big_city_name = data.pop(
+            'BigCity')['name'] if 'BigCity' in data else None
+        city_name = data.pop(
+            'City')['name'] if 'City' in data else None
+        try:
+            state = State.objects.get(name=state_name)
+            big_city = BigCity.objects.get(name=big_city_name, state=state)
+            city = City.objects.get(name=city_name, big_city=big_city)
+            data['State'] = state
+            data['BigCity'] = big_city
+            data['City'] = city
+        except State.DoesNotExist:
+            raise serializers.ValidationError(
+                {'error': 'استان انتخاب شده معتبر نمی باشد.'})
+        except BigCity.DoesNotExist:
+            raise serializers.ValidationError(
+                {'error': 'شهرستان انتخاب شده معتبر نمی باشد.'})
+        except City.DoesNotExist:
+            raise serializers.ValidationError({'error': 'شهر انتخاب شده معتبر نمی باشد.'})
+        return data
+
 
 class FilterPageShopSerializer(serializers.ModelSerializer):
     state = StateSerializer()
+
     class Meta:
         model = Shop
         fields = ['ID', 'slug', 'title', 'state']
@@ -393,6 +423,12 @@ class ProductTagWriteSerializer(serializers.ModelSerializer):
         model = ProductTag
         fields = ['id', 'text', ]
 
+    def validate_text(self, data):
+        if len(data) > 127:
+            raise serializers.ValidationError(
+                {'error': 'تعداد کاراکترهای تگ انتخاب شده بیش از حد مجاز است.'})
+        return data
+
 
 class TagOwnerListSerializer(serializers.ModelSerializer):
     text = serializers.CharField(source="name")
@@ -412,10 +448,16 @@ class ProductBannerWriteSerializer(serializers.ModelSerializer):
 
 class ProductOwnerWriteSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(
-        read_only=False, many=False, queryset=Category.objects.all(),required=True,
-        error_messages={'required': ' کتگوری را انتخاب کنید','null':'کتگوری را انتخاب کنید'})
-    product_tags = ProductTagWriteSerializer(many=True, read_only=False, required=False)
-    Image = Base64ImageField(max_length=None, use_url=True,error_messages={
+        read_only=False,
+        many=False,
+        queryset=Category.objects.all(),
+        required=True,
+        error_messages={
+            'required': ' کتگوری را انتخاب کنید',
+            'null': 'کتگوری را انتخاب کنید'})
+    product_tags = ProductTagWriteSerializer(
+        many=True, read_only=False, required=False)
+    Image = Base64ImageField(max_length=None, use_url=True, error_messages={
         'null': 'لطفا تصویر را انتخاب کنید',
         'required': 'لطفا تصویر را انتخاب کنید'
     })
@@ -447,7 +489,8 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         banners = validated_data.pop('Product_Banner')
-        tags_list: list = [x['tag'] for x in validated_data.pop('product_tags', [])]
+        tags_list: list = [x['tag']
+                           for x in validated_data.pop('product_tags', [])]
         post_range_cities = validated_data.pop('post_range_cities')
         instance = Product.objects.create(**validated_data)
         self.__tag_create(instance, tags_list)
@@ -512,6 +555,7 @@ class ProductOwnerWriteSerializer(serializers.ModelSerializer):
                     ProductTag(
                         product=instance, tag=tag)
                     for tag in tags])
+
 
     def update(self, instance, validated_data):
         self.__update_banners(instance, validated_data)
@@ -663,17 +707,25 @@ class ShopAllSettingsSerializer(serializers.ModelSerializer):
         allow_empty_file=False,
         required=False,
         allow_null=True)
-    state = StateSerializer(many=False, read_only=False)
+    State = StateSerializer(many=False, read_only=False)
     BigCity = BigCitySerializer(many=False, read_only=False)
     City = CitySerializer(many=False, read_only=False)
 
     class Meta:
         model = Shop
         fields = [
-            'Title', 'Slug', 'Image', 'image_thumbnail_url',
-            'bank_account', 'social_media', 'Description', 'FK_ShopManager', 'state', 'BigCity',
-            'City', 'Location'
-        ]
+            'Title',
+            'Slug',
+            'Image',
+            'image_thumbnail_url',
+            'bank_account',
+            'social_media',
+            'Description',
+            'FK_ShopManager',
+            'State',
+            'BigCity',
+            'City',
+            'Location']
         read_only_fields = ['Title', 'Slug', 'image_thumbnail_url']
 
     def validate(self, data):
@@ -688,6 +740,27 @@ class ShopAllSettingsSerializer(serializers.ModelSerializer):
             if duplicated.exists():
                 raise serializers.ValidationError(
                     {'NationalCode_error': 'کد ملی وارد شده از قبل در سایت وجود دارد.'})
+        state_name = data.pop(
+            'State')['name'] if 'State' in data else None
+        big_city_name = data.pop(
+            'BigCity')['name'] if 'BigCity' in data else None
+        city_name = data.pop(
+            'City')['name'] if 'City' in data else None
+        try:
+            state = State.objects.get(name=state_name)
+            big_city = BigCity.objects.get(name=big_city_name, state=state)
+            city = City.objects.get(name=city_name, big_city=big_city)
+            data['State'] = state
+            data['BigCity'] = big_city
+            data['City'] = city
+        except State.DoesNotExist:
+            raise serializers.ValidationError(
+                {'error': 'استان انتخاب شده معتبر نمی باشد.'})
+        except BigCity.DoesNotExist:
+            raise serializers.ValidationError(
+                {'error': 'شهرستان انتخاب شده معتبر نمی باشد.'})
+        except City.DoesNotExist:
+            raise serializers.ValidationError({'error': 'شهر انتخاب شده معتبر نمی باشد.'})
         return data
 
     def update(self, instance, validated_data):
@@ -836,8 +909,11 @@ class NewProfileSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         if 'Image' in validated_data:
             instance.Image = validated_data.pop('Image')
-
         user = validated_data.pop('FK_User')
+        # TODO: I done as image for check birthday
+        if 'BrithDay' in validated_data:
+            birthday = validated_data.pop('BrithDay')
+            instance.BrithDay = jdatetime.date(birthday.year, birthday.month, birthday.day)
         instance.user.first_name = user.get('first_name')
         instance.user.last_name = user.get('last_name')
         for prop in validated_data:
@@ -909,9 +985,9 @@ class UserOrderSerializer(serializers.ModelSerializer):
             'address_json',
             'address',
             'created_datetime',
-            'final_invoice_price',
-            'final_coupon_price',
-            'final_logistic_price',
+            # 'final_invoice_price', # TODO : Field name `final_invoice_price` is not valid for model `Invoice`
+            # 'final_coupon_price',  # TODO : Field name `final_coupon_price` is not valid for model `Invoice`
+            # 'final_logistic_price', # TODO : Field name `final_logistic_price` is not valid for model `Invoice`
             'status',
             'receiver_name',
             'receiver_mobile')
