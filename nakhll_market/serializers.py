@@ -19,6 +19,7 @@ from nakhll_market.models import (
     Product, ProductBanner, Profile, Shop, Slider, State,
     LandingPageSchema, ShopPageSchema, UserImage, Tag, ProductTag,
 )
+from nakhll_market.mixins import DriveBigCityAndStateFromCityMixin
 from shop.models import ShopFeature
 from shop.serializers import ShopLandingDetailsSerializer
 import jdatetime
@@ -176,7 +177,9 @@ class ShopSimpleSerializer(serializers.ModelSerializer):
         fields = ['ID', 'slug', 'title', ]
 
 
-class CreateShopSerializer(serializers.ModelSerializer):
+class CreateShopSerializer(
+    DriveBigCityAndStateFromCityMixin, 
+    serializers.ModelSerializer):
     first_name = serializers.CharField(max_length=127, write_only=True)
     last_name = serializers.CharField(max_length=127, write_only=True)
 
@@ -208,12 +211,6 @@ class CreateShopSerializer(serializers.ModelSerializer):
         elif Shop.objects.filter(Slug=value).exists():
             raise ValidationError({'details': 'شناسه حجره از قبل موجود است'})
         return value
-
-    def create(self, validated_data):
-        city = validated_data.get('City')
-        validated_data['BigCity'] = city.big_city
-        validated_data['State'] = city.big_city.state
-        return super().create(validated_data)
 
 class FilterPageShopSerializer(serializers.ModelSerializer):
     state = StateSerializer()
