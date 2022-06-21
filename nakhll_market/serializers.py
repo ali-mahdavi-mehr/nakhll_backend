@@ -204,13 +204,15 @@ class CreateShopSerializer(
         user = self.context.get('request').user
         return user.last_name or value
 
-    def validate_Slug(self, value):
-        title = self.initial_data.get('Title')
-        if not value:
-            value = generate_unique_slug(Shop, title, slug_field='Slug')
-        elif Shop.objects.filter(Slug=value).exists():
+    def validate(self, data):
+        title = data.get('Title')
+        slug = data.get('Slug')
+        if not slug:
+            slug = generate_unique_slug(Shop, title, slug_field='Slug')
+        elif Shop.objects.filter(Slug=slug).exists():
             raise ValidationError({'details': 'شناسه حجره از قبل موجود است'})
-        return value
+        data['Slug'] = slug
+        return data
 
 class FilterPageShopSerializer(serializers.ModelSerializer):
     state = StateSerializer()
