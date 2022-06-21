@@ -204,7 +204,7 @@ class CreateShopSerializer(serializers.ModelSerializer):
     def validate_Slug(self, value):
         title = self.initial_data.get('Title')
         if not value:
-            value = generate_unique_slug(title)
+            value = generate_unique_slug(Shop, title, slug_field='Slug')
         elif Shop.objects.filter(Slug=value).exists():
             raise ValidationError({'details': 'شناسه حجره از قبل موجود است'})
         return value
