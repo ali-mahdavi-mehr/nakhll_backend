@@ -1,9 +1,5 @@
-from os import name
-from django.urls import path, re_path, include
-from django.conf.urls import url
-from . import views, web_views, analyzeview
-
-from rest_framework_jwt.views import obtain_jwt_token, verify_jwt_token
+from django.urls import path
+from . import views
 
 app_name = 'restapi'
 
