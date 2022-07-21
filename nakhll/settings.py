@@ -67,6 +67,7 @@ THIRD_PARTY_APPS = [
     'oauth2_provider',
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt',
     'django_filters',
     'imagekit',
     'compressor',
