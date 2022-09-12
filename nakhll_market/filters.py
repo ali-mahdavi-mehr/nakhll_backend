@@ -82,20 +82,15 @@ class ProductFilter(filters.FilterSet):
 
     def filter_status(self, queryset, name, value):
         if value=="آماده در انبار":
-            print("111111")
-
             return queryset.filter(Status__icontains=1)
 
         elif value=="تولید بعد از سفارش":
-            print("22222")
             return queryset.filter(Status__icontains=2)
 
         elif value=="سفارشی سازی فروش":
-            print("33333")
             return queryset.filter(Status__icontains=3)
 
         elif value=="موجود نیست":
-            print("44444")
             return queryset.filter(Status__icontains=4)
 
 
