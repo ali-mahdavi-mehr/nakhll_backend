@@ -22,6 +22,11 @@ class ProductFilter(filters.FilterSet):
     """
     min_price = filters.NumberFilter(field_name="Price", lookup_expr='gte')
     max_price = filters.NumberFilter(field_name="Price", lookup_expr='lte')
+    min_enventory=filters.NumberFilter(field_name="Inventory", lookup_expr='gte')
+    max_enventory = filters.NumberFilter(field_name="Inventory", lookup_expr='lte')
+    min_preparationdays= filters.NumberFilter(field_name="PreparationDays", lookup_expr='gte')
+    max_preparationdays= filters.NumberFilter(field_name="PreparationDays", lookup_expr='lte')
+    status = filters.CharFilter(method='filter_status')
     ready = filters.BooleanFilter(method='filter_ready')
     search = filters.CharFilter(method='filter_search')
     q = filters.CharFilter(method='filter_q')
@@ -41,6 +46,11 @@ class ProductFilter(filters.FilterSet):
             'search',
             'min_price',
             'max_price',
+            'min_enventory',
+            'max_enventory',
+            'min_preparationdays',
+            'max_preparationdays',
+            'status',
             'ready',
             'available',
             'category',
@@ -69,6 +79,25 @@ class ProductFilter(filters.FilterSet):
                 Status__in=AVAILABLE_IDS, Inventory__gt=0,
                 FK_Shop__Publish=True)
         return queryset
+
+    def filter_status(self, queryset, name, value):
+        if value=="آماده در انبار":
+            print("111111")
+
+            return queryset.filter(Status__icontains=1)
+
+        elif value=="تولید بعد از سفارش":
+            print("22222")
+            return queryset.filter(Status__icontains=2)
+
+        elif value=="سفارشی سازی فروش":
+            print("33333")
+            return queryset.filter(Status__icontains=3)
+
+        elif value=="موجود نیست":
+            print("44444")
+            return queryset.filter(Status__icontains=4)
+
 
     @split_args(-1)
     def filter_category(self, queryset, name, value):

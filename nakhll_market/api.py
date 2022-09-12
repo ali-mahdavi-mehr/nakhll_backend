@@ -197,7 +197,6 @@ class ShopOwnerProductViewSet(viewsets.GenericViewSet,
 
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
-
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
         obj = get_object_or_404(queryset, **filter_kwargs)
