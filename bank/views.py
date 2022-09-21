@@ -1,13 +1,14 @@
 from django.http import HttpResponse
 from django.db import transaction
-from rest_framework import permissions, views, viewsets
+from django.db.models import F, Sum
+from rest_framework import permissions, views, viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from bank.constants import RequestTypes
 from bank.permissions import UserHasWithdrawLimitBalance
 from .filters import AccountRequestFilter
-from bank.models import Account, AccountRequest, CoinPayment
+from bank.models import Account, AccountRequest, AccountTransaction, CoinPayment
 from bank.serializers import AccountReadOnlySerializer, AccountRequestReportSerializer
 
 
@@ -81,3 +82,19 @@ def deposit_user(user, request_type, amount, description):
             request_type=request_type,
             description=description,
         )
+
+
+class CoinInfoAPI(views.APIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            account = Account.objects.annotate(remain_coins=F('balance') - F('blocked_balance')).get(id=-1)
+        except Account.DoesNotExist:
+            return Response({"error": "Account does not exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+        account_transaction = AccountTransaction.objects.filter(account_opposite_id=-1).aggregate(
+            given_coins=Sum('value'))
+
+        return Response({
+            'remain_coins': account.remain_coins,
+            'given_coins': account_transaction['given_coins']
+        })
