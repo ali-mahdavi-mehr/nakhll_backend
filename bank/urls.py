@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from bank.views import AccountRequestViewSet, AccountViewSet, Withdraw
+from bank.views import AccountRequestViewSet, AccountViewSet, Withdraw, CoinInfoAPI
 app_name = 'bank'
 
 report_router = routers.DefaultRouter()
@@ -20,4 +20,5 @@ urlpatterns = [
         'report/',
         include(report_router.urls),
         name='report'),
+    path('coin-info/', CoinInfoAPI.as_view())
 ]
